@@ -1,12 +1,12 @@
 /**
  * Copyright 2018 Ricoh Company, Ltd.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,6 +36,7 @@ import android.view.ViewGroup;
 import com.theta360.pluginlibrary.activity.ThetaInfo;
 import com.theta360.pluginlibrary.exif.CameraAttitude;
 import com.theta360.pluginlibrary.values.ThetaModel;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,6 +55,7 @@ import com.theta360.pluginlibrary.exif.Xmp;
 import com.theta360.pluginlibrary.exif.values.SphereType;
 
 import java.util.List;
+
 import org.apache.sanselan.util.IOUtils;
 
 /**
@@ -75,9 +77,7 @@ public class CameraFragment extends Fragment {
     private boolean mIsCapturing = false;
     private boolean mIsDuringExposure = false;
     private File mInstanceRecordMP4;
-    private File mInstanceRecordWAV;
     private String mMp4filePath;
-    private String mWavfilePath;
     private CameraAttitude mCameraAttitude = null;
 
     private MediaRecorder.OnInfoListener onInfoListener = new MediaRecorder.OnInfoListener() {
@@ -204,7 +204,7 @@ public class CameraFragment extends Fragment {
                 Log.d("CameraSettings", "  TimeZone: (Not set yet)");
             }
 
-             /*
+            /*
              * Confirm sensor value (for debug)
              */
             Log.d("SensorValues", "Confirm SensorValues:");
@@ -298,7 +298,7 @@ public class CameraFragment extends Fragment {
                  * Copy temp.dng and give the same metadata as the jpeg file.
                  */
                 try (FileInputStream dngInputStream = new FileInputStream(dngTempFile);
-                        FileOutputStream dngOutputStream = new FileOutputStream(dngFileUrl)) {
+                     FileOutputStream dngOutputStream = new FileOutputStream(dngFileUrl)) {
                     byte[] dngData = IOUtils.getInputStreamBytes(dngInputStream);
                     DngExif dngExif = new DngExif(dngData, false);
                     dngExif.setExifGPS();
@@ -356,7 +356,7 @@ public class CameraFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+                             Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
@@ -440,8 +440,7 @@ public class CameraFragment extends Fragment {
 
             if (thetaModel == ThetaModel.THETA_Z1) {
                 mParameters.setPictureSize(6720, 3360);
-            }
-            else {
+            } else {
                 mParameters.setPictureSize(5376, 2688);
             }
             mParameters.set("RIC_SHOOTING_MODE", "RicStillCaptureStd");
@@ -452,7 +451,7 @@ public class CameraFragment extends Fragment {
             mParameters.set("RIC_MANUAL_EXPOSURE_ISO_FRONT", -1);
             mParameters.set("exposure-compensation-step", "0.333333333");   // 1/3 step
             mParameters.setExposureCompensation(0);
-            if(thetaModel == ThetaModel.THETA_Z1) {
+            if (thetaModel == ThetaModel.THETA_Z1) {
                 mParameters.set("RIC_MANUAL_EXPOSURE_AV_REAR", 0);
                 mParameters.set("RIC_MANUAL_EXPOSURE_AV_FRONT", 0);
             }
@@ -487,11 +486,9 @@ public class CameraFragment extends Fragment {
 
             // Sample:Set up 4K Equi videos
             mParameters.set("RIC_PROC_STITCHING", "RicStaticStitching");
-            mParameters.set("RIC_SHOOTING_MODE", "RicMovieRecording4kEqui");
-
-            CamcorderProfile camcorderProfile = CamcorderProfile.get(mCameraId, 10013);
-
-            mParameters.set("video-size", "3840x1920");
+            mParameters.set("RIC_SHOOTING_MODE", "RicMovieRecording2kEqui");
+            CamcorderProfile camcorderProfile = CamcorderProfile.get(mCameraId, 10014);
+            mParameters.set("video-size", "1920x960");
             mParameters.set("recording-hint", "true");
 
             mCamera.setParameters(mParameters);
@@ -507,16 +504,14 @@ public class CameraFragment extends Fragment {
             camcorderProfile.audioChannels = 1;
 
             mMediaRecorder.setProfile(camcorderProfile);
-            mMediaRecorder.setVideoEncodingBitRate(56000000); // 56 Mbps
-            mMediaRecorder.setVideoFrameRate(30); // 30 fps
-            mMediaRecorder.setMaxDuration(1500000); // max: 25 min
+            mMediaRecorder.setVideoEncodingBitRate(1000000); // 1 Mbps
+            mMediaRecorder.setVideoFrameRate(9); // 9 fps
+            mMediaRecorder.setMaxDuration(60000); // max: 1 min
             mMediaRecorder.setMaxFileSize(20401094656L); // max: 19 GB
 
             String dateTime = getDateTime();
             mMp4filePath = String.format("%s/plugin_%s.MP4", DCIM, dateTime);
-            mWavfilePath = String.format("%s/plugin_%s.WAV", DCIM, dateTime);
-            String videoWavFile = String.format("%s,%s", mMp4filePath, mWavfilePath);
-            mMediaRecorder.setOutputFile(videoWavFile);
+            mMediaRecorder.setOutputFile(mMp4filePath);
             mMediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
             mMediaRecorder.setOnErrorListener(onErrorListener);
             mMediaRecorder.setOnInfoListener(onInfoListener);
@@ -594,7 +589,6 @@ public class CameraFragment extends Fragment {
                 Log.d("debug", "mMediaRecorder.start()");
 
                 mInstanceRecordMP4 = new File(mMp4filePath);
-                mInstanceRecordWAV = new File(mWavfilePath);
             } catch (IOException | RuntimeException e) {
                 e.printStackTrace();
                 stopMediaRecorder();
@@ -609,7 +603,7 @@ public class CameraFragment extends Fragment {
                  * by specifying mp4 file path and wav file path in form box of BoxClass
                  */
                 Box box = new Box();
-                box.formBox(mMp4filePath, mWavfilePath, mBoxCallback);
+                box.formBox(mMp4filePath, "", mBoxCallback);
 
                 // After shooting, set the shooting mode to monitoring mode.
                 mParameters.set("RIC_SHOOTING_MODE", "RicMonitoring");
@@ -617,7 +611,6 @@ public class CameraFragment extends Fragment {
             } catch (RuntimeException e) {
                 // cancel recording
                 mInstanceRecordMP4.delete();
-                mInstanceRecordWAV.delete();
                 result = false;
             } finally {
                 stopMediaRecorder();
@@ -639,8 +632,7 @@ public class CameraFragment extends Fragment {
      * @return recordFiles [0]:MP4 file [1]:WAV file
      */
     public File[] getRecordFiles() {
-        File[] recordFiles = {mInstanceRecordMP4, mInstanceRecordWAV};
-        return recordFiles;
+        return new File[]{mInstanceRecordMP4};
     }
 
     public boolean isCapturing() {
