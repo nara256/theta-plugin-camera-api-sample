@@ -1,3 +1,10 @@
+# このサンプルについて
+
+以下をご参照ください。
+https://qiita.com/nara256/items/6fb46a9b5636e932d409
+
+___
+
 # THETA Plug-in: CameraAPI Capture Plugin
 
 Version: 2.1.0
