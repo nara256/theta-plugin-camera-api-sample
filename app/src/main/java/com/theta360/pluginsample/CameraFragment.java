@@ -80,11 +80,11 @@ public class CameraFragment extends Fragment {
     private String mMp4filePath;
     private CameraAttitude mCameraAttitude = null;
 
-    private MediaRecorder.OnInfoListener onInfoListener = new MediaRecorder.OnInfoListener() {
-        @Override
-        public void onInfo(MediaRecorder mr, int what, int extra) {
-        }
-    };
+    private MediaRecorder.OnInfoListener onInfoListener;
+    public void setInfoListener(@NonNull MediaRecorder.OnInfoListener listener) {
+        onInfoListener = listener;
+    }
+
     private MediaRecorder.OnErrorListener onErrorListener = new MediaRecorder.OnErrorListener() {
         @Override
         public void onError(MediaRecorder mediaRecorder, int what, int extra) {
